@@ -1,0 +1,102 @@
+import React, { useState } from 'react'
+import API from "../services/api.js"
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import Alert from "react-bootstrap/Alert";
+
+const Login = () => {
+
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({...form, [e.target.name]: e.target.value});
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await API.post("/login", form);
+
+      toast.success("Login successful!");
+
+      //Svae JWT + role
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.role);
+      localStorage.setItem("email", res.data.email);
+
+      if (res.data.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
+
+    } catch (error) {
+      console.log(error);
+      toast.error("Invalid email or password");
+    }
+  };
+
+  return (
+    <>
+     <Alert variant="warning" className="text-center">
+        ⚠️ This project uses a <b>free-tier backend</b>.  
+        The server may take <b>30–60 seconds</b> to start on first use.
+        Please wait patiently after clicking Login.
+      </Alert>
+    <div className="container d-flex justify-content-center align-items-center" style={{height: "100vh"}}>
+      <div className="card p-4 shadow" style={{width: "380px"}}>
+        <h3 className="fw-bold text-center mb-3">Login</h3>
+
+        <form onSubmit={handleSubmit}>
+            <div className='mb-3'>
+                <label>Email</label>
+                <input 
+                    type="email"
+                    name="email"
+                    className='form-control'
+                    placeholder='Enter your email'
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+
+            <div className='mb-3'>
+                <label>Password</label>
+                <input 
+                    type="password"
+                    name="password"
+                    className='form-control'
+                    placeholder='Enter you password'
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+
+            <button className='btn btn-primary w-100'>Login</button>
+
+            <div className='text-center mt-3'>
+              <p className='mb-0'>
+                Dont't have an account?{" "}
+                <span
+                  style={{cursor: 'pointer'}}>
+                  <a href="/register" className="text-decoration-none">Sign Up</a>
+                </span>
+              </p>
+            </div>
+          
+        </form>
+      </div>
+    </div>
+    </>
+  )
+}
+
+export default Login
